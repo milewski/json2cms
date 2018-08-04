@@ -1,0 +1,13 @@
+{
+  "home": {
+    "header": "text"
+  },
+  "contact": {
+    "test": "text",
+    "double": "text"
+  },
+  "jobs": {
+    "another": "text",
+    "second": "number"
+  }
+}

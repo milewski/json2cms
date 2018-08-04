@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2016",
+    "sourceMap": true,
+    "types": [
+      "node",
+      "express",
+      "knex"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
