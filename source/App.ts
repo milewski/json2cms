@@ -1,21 +1,17 @@
-/**
- * @todo figure out a way to include this css-file without requiring it on the main bundle
- * Important! This must to come before everything for right ordering on the final output file
- */
-import './scss/main.scss'
-
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import View from './components/View.vue'
 import Main from './Main.vue'
-import { Parser } from './Parse'
+// import { Parser } from './Parse'
 
 /**
  * Install Plugins
  */
 Vue.use(VueRouter)
 
-const parser = new Parser(require('../config.json'))
+// const parser = new Parser(require('../config/home.json'))
+
+const menus = []
 
 const router = new VueRouter({
     mode: 'history',
@@ -23,11 +19,20 @@ const router = new VueRouter({
         {
             path: '/',
             component: View,
-            children: parser.routes(),
+            // children: parser.routes(),
             props: {
-                menus: parser.getMenus()
+                menus: menus
+            },
+            beforeEnter(to, from, next) {
+
+                fetch('/api/menus')
+                    .then(response => response.json())
+                    .then(data => void menus.push(...data) || next())
+
             }
+
         }
+
     ]
 })
 

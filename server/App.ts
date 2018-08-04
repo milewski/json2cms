@@ -1,9 +1,16 @@
 import * as  bodyParser from 'body-parser'
 import * as createApplication from 'express'
-import { Express } from 'express-serve-static-core'
-import { AbstractRouter } from './abstracts/AbstractRouter'
+import { Express, Request } from 'express-serve-static-core'
+import { unflatten } from 'flat'
+import * as glob from 'glob'
+import 'reflect-metadata'
+import { createConnection, getManager } from 'typeorm'
 import { Database } from './Database'
-import { Home } from './routes/Home'
+import { Parser } from './Parser'
+
+const parser = new Parser(
+    glob.sync('./config/**/*.json', { absolute: true })
+)
 
 class Server {
 
@@ -17,17 +24,30 @@ class Server {
     constructor() {
         this.application = createApplication()
         this.registerPlugins()
-        this.registerRoutes([ Home ])
+        this.registerRoutes()
     }
 
-    private registerRoutes(routes: (new (database: Database) => AbstractRouter)[]) {
-        routes.forEach(Router => {
-            this.application.use((new Router(this.database)).initRoutes())
+    private registerRoutes() {
+
+        this.application.use('/api/menus', async (req: Request, res) => {
+            res.json(parser.getMenus())
         })
+
+        this.application.use('/:entity', async (req: Request, res) => {
+
+            const postRepository = getManager().getRepository(
+                parser.getEntity(req.params.entity)
+            )
+
+            const data = await postRepository.findOne()
+
+            res.json(unflatten(data))
+
+        })
+
     }
 
     private registerPlugins() {
-        // this.application.use(formidable())
         this.application.use(bodyParser.json())
     }
 
@@ -37,4 +57,17 @@ class Server {
 
 }
 
-Server.bootstrap().start()
+createConnection({
+    type: 'mysql',
+    host: '0.0.0.0',
+    port: 3306,
+    username: 'root',
+    password: 'secret',
+    database: 'test',
+    entities: parser.getEntities(),
+    synchronize: true,
+    logging: false
+}).then(async connection => {
+    Server.bootstrap().start()
+})
+

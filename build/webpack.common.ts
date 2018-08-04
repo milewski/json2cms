@@ -1,16 +1,17 @@
 import * as CleanPlugin from 'clean-webpack-plugin'
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+import * as DuplicatePackageCheckerPlugin from 'duplicate-package-checker-webpack-plugin'
+import * as ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
 import * as FriendlyErrorsWebpackPlugin from 'friendly-errors-webpack-plugin'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
+import * as MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import * as path from 'path'
-import * as url from 'url'
-import * as webpack from 'webpack'
+import { VueLoaderPlugin } from 'vue-loader'
+import { compilation, DefinePlugin } from 'webpack'
 
 export const context = {
-    publicPath: '',
+    publicPath: '/',
     root: path.resolve(__dirname, '..'),
     source: path.resolve(__dirname, '..', 'source'),
-    templates: path.resolve(__dirname, '..', 'source/templates'),
     assets: path.resolve(__dirname, '..', 'source/assets'),
     scss: path.resolve(__dirname, '..', 'source/scss'),
     distribution: path.resolve(__dirname, '..', 'distribution')
@@ -19,8 +20,11 @@ export const context = {
 export default (production: boolean) => {
 
     return {
+        mode: production ? 'production' : 'development',
         context: context.source,
-        entry: { app: './App.ts' },
+        entry: {
+            main: './App.ts'
+        },
         output: {
             path: context.distribution,
             publicPath: production ? '/' : context.publicPath,
@@ -31,61 +35,54 @@ export default (production: boolean) => {
             extensions: [ '.ts', '.js', '.vue', '.json' ],
             mainFields: [ 'module', 'main' ],
             alias: {
-                'vue$': 'vue/dist/vue.esm.js',
+                'vue$': 'vue/dist/vue.esm.js'
+            }
+        },
+        optimization: {
+            runtimeChunk: { name: 'runtime' },
+            splitChunks: {
+                cacheGroups: {
+                    vendors: {
+                        test: /node_modules/,
+                        name: 'vendors',
+                        chunks: 'all'
+                    }
+                }
             }
         },
         module: {
             rules: [
-                {
-                    test: /\.js$/,
-                    exclude: /node_modules/,
-                    loader: 'babel-loader'
-                },
+                { test: /\.vue$/, loader: 'vue-loader' },
                 {
                     test: /\.ts$/,
-                    loader: 'ts-loader',
                     exclude: /node_modules/,
-                    options: {
-                        appendTsSuffixTo: [ /\.vue$/ ],
-                        transpileOnly: true
-                    }
-                },
-                {
-                    test: /\.s?css$/,
-                    use: ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: [
-                            { loader: 'css-loader', options: { sourceMap: true, minimize: production } },
-                            { loader: 'resolve-url-loader', options: { sourceMap: true } },
-                            { loader: 'postcss-loader', options: { sourceMap: true } },
-                            { loader: 'sass-loader', options: { sourceMap: true } }
-                        ]
-                    })
-                },
-                {
-                    test: /\.vue$/,
-                    loader: 'vue-loader',
-                    options: {
-                        hotReload: true,
-                        loaders: {
-                            ts: [ { loader: 'ts-loader' } ],
-                            scss: ExtractTextPlugin.extract({
-                                fallback: 'vue-style-loader',
-                                use: [
-                                    { loader: 'css-loader', options: { minimize: production, sourceMap: true } },
-                                    { loader: 'resolve-url-loader', options: { sourceMap: true } },
-                                    { loader: 'postcss-loader', options: { sourceMap: true } },
-                                    {
-                                        loader: 'sass-loader', options: {
-                                            sourceMap: true,
-                                            includePaths: [ context.scss ],
-                                            data: '@import "./global.scss";'
-                                        }
-                                    }
-                                ]
-                            })
+                    use: [
+                        { loader: 'babel-loader' },
+                        {
+                            loader: 'ts-loader',
+                            options: {
+                                appendTsSuffixTo: [ /\.vue$/ ],
+                                transpileOnly: true
+                            }
                         }
-                    }
+                    ]
+                },
+                {
+                    test: /\.scss$/,
+                    use: [
+                        production ? MiniCssExtractPlugin.loader : { loader: 'vue-style-loader', options: { sourceMap: true } },
+                        {
+                            loader: 'typings-for-css-modules-loader',
+                            options: {
+                                sourceMap: true,
+                                minimize: production,
+                                camelCase: true,
+                                modules: true,
+                            }
+                        },
+                        { loader: 'postcss-loader', options: { sourceMap: true } },
+                        { loader: 'fast-sass-loader', options: { sourceMap: true, } }
+                    ]
                 },
                 {
                     test: /\.(jpe?g|png|svg|gif)(\?\S*)?$/,
@@ -101,44 +98,23 @@ export default (production: boolean) => {
                     options: {
                         name: 'fonts/[name].[ext]'
                     }
-                },
-                {
-                    test: /\.handlebars$/,
-                    loader: 'handlebars-loader',
-                    options: {
-                        helperDirs: [ path.join(context.templates, 'helpers') ],
-                        partialDirs: [ path.join(context.templates, 'scripts') ]
-                    }
                 }
             ]
         },
         plugins: [
             new CleanPlugin([ context.distribution ], { root: context.root, beforeEmit: true }),
             new FriendlyErrorsWebpackPlugin(),
-            new ExtractTextPlugin({
-                filename: 'styles/[name].[contenthash].css',
-                disable: !production
-            }),
-            new webpack.DefinePlugin({
-                'process.env': {
-                    NODE_ENV: production ? '"production"' : '"development"',
-                    DEBUG: true
-                }
-            }),
-            new webpack.optimize.CommonsChunkPlugin({
-                name: 'vendor',
-                minChunks: module => module.context && module.context.indexOf('node_modules') !== -1
+            new VueLoaderPlugin(),
+            new DuplicatePackageCheckerPlugin(),
+            new ForkTsCheckerWebpackPlugin({
+                tsconfig: path.resolve(context.root, 'tsconfig.json'),
+                vue: true,
+                async: false
             }),
             new HtmlWebpackPlugin({
                 filename: 'index.html',
-                template: path.resolve(context.source, 'index.handlebars'),
-                minify: !production ? {} : {
-                    minifyCSS: true,
-                    minifyJS: true,
-                    removeComments: true,
-                    removeEmptyAttributes: true,
-                    collapseWhitespace: true
-                }
+                template: path.resolve(context.source, 'index.html'),
+                env: process.env
             })
         ],
         node: {

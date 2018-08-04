@@ -1,7 +1,4 @@
-import { MenuItem } from 'element-ui'
 import FormComponent from './components/Form.vue'
-import NumberParser from './parsers/NumberParser.vue'
-import TextParser from './parsers/TextParser.vue'
 
 type ParserType = 'text' | 'number'
 
@@ -9,19 +6,19 @@ export class Parser {
 
     private menus: string[] = []
     private parsers = {
-        text: TextParser,
-        number: NumberParser
+        // text: TextParser,
+        // number: NumberParser
     }
 
     constructor(private options) {
         for (let menu in this.options) {
-            this.menus.push(menu)
+            // this.menus.push(menu)
         }
     }
 
     public getMenus() {
         return this.menus.map(name => {
-            return { component: MenuItem, name, props: true }
+            // return { component: MenuItem, name, props: true }
         })
     }
 
@@ -50,7 +47,7 @@ export class Parser {
 
     }
 
-    private applyParsers(object: { [ key: string ]: ParserType }): { [ key: string ]: new () => TextParser } {
+    private applyParsers(object: { [ key: string ]: ParserType }): { [ key: string ]: new () => any } {
 
         const result = {}
 

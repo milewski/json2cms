@@ -1,27 +1,6 @@
 {
   "comments": true,
   "presets": [
-    [
-      "@babel/preset-env",
-      {
-        "targets": {
-          "modules": false,
-          "browsers": [
-            "last 2 versions",
-            "safari >= 7"
-          ]
-        }
-      }
-    ]
-  ],
-  "plugins": [
-    "@babel/syntax-dynamic-import",
-    [
-      "component",
-      {
-        "libraryName": "element-ui",
-        "styleLibraryName": "theme-chalk"
-      }
-    ]
+    "@babel/preset-env"
   ]
 }

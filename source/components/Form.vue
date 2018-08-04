@@ -1,27 +1,13 @@
 <template>
-    <el-form ref="form" :model="form" label-width="120px">
-        <template v-for="(input, index) in inputs">
-            <el-form-item :label="input.label">
-                <component :is="input.component" :key="index" v-model="form[input.label]"/>
-            </el-form-item>
-        </template>
-        <el-form-item>
-            <el-button type="primary" @click="onSubmit">Save</el-button>
-            <el-button @click="onCancel">Cancel</el-button>
-        </el-form-item>
-    </el-form>
+  <div>
+      oioi
+  </div>
 </template>
 
 <script lang="ts">
 
-    import { Button, Form, FormItem, Input } from 'element-ui'
-
     export default {
         components: {
-            'el-form': Form,
-            'el-form-item': FormItem,
-            'el-input': Input,
-            'el-button': Button
         },
         props: {
             table: {
