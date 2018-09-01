@@ -1,4 +1,4 @@
-import { flatten } from 'flat'
+import { flatten, unflatten } from 'flat'
 import * as path from 'path'
 import { plural } from 'pluralize'
 import { EntitySchema } from 'typeorm'
@@ -6,6 +6,7 @@ import { EntitySchema } from 'typeorm'
 export class Parser {
 
     private entities = {}
+    private schemas = {}
 
     constructor(private config: any[] = []) {}
 
@@ -13,8 +14,12 @@ export class Parser {
         return Object.keys(this.entities)
     }
 
-    public getEntity(name: string) {
+    public getEntity(name: string): EntitySchema<{}> {
         return this.entities[ name ]
+    }
+
+    public getSchema(name: string) {
+        return unflatten(this.schemas[ name ])
     }
 
     public getEntities() {
@@ -23,6 +28,8 @@ export class Parser {
 
             const { name } = path.parse(config)
             const columns = flatten(require(config))
+
+            this.schemas[ name ] = Object.assign({}, columns)
 
             for (const key in columns) {
                 columns[ key ] = {

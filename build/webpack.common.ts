@@ -1,12 +1,12 @@
 import * as CleanPlugin from 'clean-webpack-plugin'
 import * as DuplicatePackageCheckerPlugin from 'duplicate-package-checker-webpack-plugin'
-import * as ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
 import * as FriendlyErrorsWebpackPlugin from 'friendly-errors-webpack-plugin'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import * as path from 'path'
 import { VueLoaderPlugin } from 'vue-loader'
 import { compilation, DefinePlugin } from 'webpack'
+import  ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 export const context = {
     publicPath: '/',
@@ -78,10 +78,12 @@ export default (production: boolean) => {
                                 minimize: production,
                                 camelCase: true,
                                 modules: true,
+                                namedExport: true,
+                                localIdentName: '[local]'
                             }
                         },
                         { loader: 'postcss-loader', options: { sourceMap: true } },
-                        { loader: 'fast-sass-loader', options: { sourceMap: true, } }
+                        { loader: 'fast-sass-loader', options: { sourceMap: true } }
                     ]
                 },
                 {

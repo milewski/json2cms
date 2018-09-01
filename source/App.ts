@@ -1,15 +1,17 @@
+import ElementUI from 'element-ui'
+// import { Parser } from './Parse'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import View from './components/View.vue'
 import Main from './Main.vue'
-// import { Parser } from './Parse'
+import Layout from './views/Layout.vue'
+
+import './styles/main.scss'
 
 /**
  * Install Plugins
  */
 Vue.use(VueRouter)
-
-// const parser = new Parser(require('../config/home.json'))
+Vue.use(ElementUI)
 
 const menus = []
 
@@ -18,7 +20,7 @@ const router = new VueRouter({
     routes: [
         {
             path: '/',
-            component: View,
+            component: Layout,
             // children: parser.routes(),
             props: {
                 menus: menus
@@ -27,7 +29,7 @@ const router = new VueRouter({
 
                 fetch('/api/menus')
                     .then(response => response.json())
-                    .then(data => void menus.push(...data) || next())
+                    .then(data => (menus.push(...data), next()))
 
             }
 
